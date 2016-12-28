@@ -23,9 +23,13 @@ import java.util.regex.Pattern;
  * 前端格式
  * {%[(name)][flags][width].[precision]typecode}
  */
-public class StringFormatter 
+public class StringFormatter
 {
+    //文本模版
     private String template="";
+    
+    //实际使用标签
+    private List<String> fields;
     
     /**
      * 前端可用标签
@@ -59,21 +63,37 @@ public class StringFormatter
      * @param value
      * @return 
      */
-    public boolean set(final String label, final Object value)
+    public boolean set(String label, final Object value)
     {
-        if(label==null || "".equals(label.trim()))
+        if(label==null)
             return false;
         
-        if(labels.containsKey(label.trim()))
-            labels.get(label.trim()).put("value", value);
+        label = label.trim();
+        
+        if("".equals(label))
+            return false;
+        
+        if(labels.containsKey(label) && fields.contains(label))
+            labels.get(label).put("value", value);
+        else
+            return false;
         
         return true;
     }
     
     public boolean template(final String temp)
     {
-        template = temp;
-        return true;
+        try
+        {
+            format(temp,true);
+            template = temp;
+            return true;
+        }
+        catch(Exception ex)
+        {
+            ;
+        }
+        return false;
     }
     
     /**
@@ -91,12 +111,15 @@ public class StringFormatter
      */
     public List getFields()
     {
-        List fields = new ArrayList();
-        Pattern p = Pattern.compile("%\\((.*?)\\)");
-        Matcher m = p.matcher(template);
-        while(m.find()){
-            if(labels.containsKey(m.group(1)))
-                fields.add(m.group(1));
+        if(fields==null)
+        {
+            fields = new ArrayList();
+            Pattern p = Pattern.compile("%\\((.*?)\\)");
+            Matcher m = p.matcher(template);
+            while(m.find()){
+                if(labels.containsKey(m.group(1)))
+                    fields.add(m.group(1));
+            }
         }
         return fields;
     }
@@ -104,32 +127,44 @@ public class StringFormatter
     /**
      * 处理模版字符
      * @param temp
+     * @param test
      * @return 
      */
-    public String format(String temp)
+    public String format(String temp, boolean test)
     {
+        fields = new ArrayList();
+        
+        if(temp==null || "".equals(temp))
+            return temp;
+        
 //        temp = "a {%(title)s} b, c {%(amount)d} d";
         //temp = "a %1s b, c %2$d d";
         Object[] params = new Object[labels.size()];
 //        temp = temp.replace("{", "").replace("}", "");//todo:xxx
         for (Map.Entry<String, Map<String, Object>> entry : labels.entrySet()) {
+            String tmp = temp;
             temp = temp.replace("%("+entry.getKey()+")", "%"+entry.getValue().get("index")+"$");
-            params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("value");
+            if(!tmp.equals(temp))
+                fields.add(entry.getKey());
+            if(test)
+                params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("default");
+            else
+                params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("value");
         }
         //直接使用String格式化
-        try
+//        try
         {
             return String.format(temp, params);
         }
-        catch(Exception ex)
-        {
-            return temp;
-        }
+//        catch(Exception ex)
+//        {
+//            return temp;
+//        }
     }
     
     public String format()
     {
-        return format(template);
+        return format(template,false);
     }
     
     /**
@@ -139,25 +174,40 @@ public class StringFormatter
     public static void main(String[] args)
     {
         StringFormatter formatter = new StringFormatter();
-        //初始格式化工具
+        //初始格式化标签和默认值
         formatter.add("title", "张");
         formatter.add("amount", 111.11);
         formatter.add("date", new Date());
-        //前端需要得到有效格式化标签
+        //前端需要得到有效的格式化标签的信息
         Map<String,Map<String,Object>> labels = formatter.getLabels();
         System.out.println(labels);
+        //设置并检查模版格式
+        if(formatter.template("您好 {%(title)s} , {%(date)tF} 账单，金额 {%(amount).2f}，{%(amount).2f}。"))
+        {
+            List fields = formatter.getFields();
+            //未用到的label不用设置
+            if(fields.contains("title"))
+                formatter.set("title", "张三");
+            if(fields.contains("amount"))
+                formatter.set("amount", -34.123);
+            if(fields.contains("date"))
+                formatter.set("date", new Date());
+            //进行格式化
+            String s = formatter.format();
+            System.out.println(s);
+        }
+        else
+        {
+            System.out.println("模版有误，请更正！");
+        }
         //准备格式化值
         formatter.set("title", "张");
         formatter.set("date", new Date());
         formatter.set("amount", 122.234);
-        //进行格式化
-        String s = formatter.format("您好 {%(title)s} , {%(date)tF} 账单，金额 {%(amount).2f} 。");
-        formatter.template("您好 {%(title)s} , {%(date)tF} 账单，金额 {%(amount).2f} 。");
-        List fields = formatter.getFields();
-        //未用到的label不用设置
-        if(fields.contains("title"))
-            formatter.set("title", "张三");
-        formatter.format();
+        //直接格式化，不建议这样使用，应该先检测模版格式
+        String s = formatter.format("您好 {%(title)s} , {%(date)tF} 账单，金额 {%(amount).2f} 。",false);
         System.out.println(s);
+        List fields = formatter.getFields();
+        System.out.println(fields);
     }
 }
