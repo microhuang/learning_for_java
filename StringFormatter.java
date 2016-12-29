@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
  * %[(name)][flags][width].[precision]typecode
  * 前端格式
  * {%[(name)][flags][width].[precision]typecode}
+ * 参考：https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html
  */
 public class StringFormatter
 {
@@ -161,6 +162,7 @@ public class StringFormatter
         //直接使用String格式化
 //        try
         {
+            //return new Formatter().format(temp, params).toString();
             return String.format(temp, params);
         }
 //        catch(Exception ex)
