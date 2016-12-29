@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
  * 前端格式
  * {%[(name)][flags][width].[precision]typecode}
  * 参考：https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html
+ * 参考：java.util.Formatter
+ * 参考：java.text.MessageFormat
  */
 public class StringFormatter
 {
