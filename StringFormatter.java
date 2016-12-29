@@ -40,9 +40,11 @@ public class StringFormatter
      * 添加可用标签
      * @param label，前端标签
      * @param value，前端默认值
+     * @param pattern
+     * @param comment
      * @return 
      */
-    public boolean add(final String label, final Object value)
+    public boolean add(final String label, final Object value, final String pattern, final String comment)
     {
         if(label==null || "".equals(label.trim()))
             return false;
@@ -52,6 +54,8 @@ public class StringFormatter
                 put("index", labels.size()+1);//格式化用：%index$
                 put("label", label.trim());//前端用：%(name)$
                 put("default", value);//前端用，示例值
+                put("pattern", value);//前端用，示例值
+                put("comment", value);//前端用，示例值
             }});
         
         return true;
@@ -129,8 +133,9 @@ public class StringFormatter
      * @param temp
      * @param test
      * @return 
+     * @throws java.lang.Exception 
      */
-    public String format(String temp, boolean test)
+    public String format(String temp, boolean test) throws Exception
     {
         fields = new ArrayList();
         
@@ -148,8 +153,10 @@ public class StringFormatter
                 fields.add(entry.getKey());
             if(test)
                 params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("default");
-            else
+            else if(entry.getValue().containsKey("value"))
                 params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("value");
+            else
+                throw new Exception("Label: "+entry.getKey()+" 没有分配值！");
         }
         //直接使用String格式化
 //        try
@@ -162,7 +169,7 @@ public class StringFormatter
 //        }
     }
     
-    public String format()
+    public String format() throws Exception
     {
         return format(template,false);
     }
@@ -175,9 +182,9 @@ public class StringFormatter
     {
         StringFormatter formatter = new StringFormatter();
         //初始格式化标签和默认值
-        formatter.add("title", "张");
-        formatter.add("amount", 111.11);
-        formatter.add("date", new Date());
+        formatter.add("title", "张", "%(title)s", "姓名");
+        formatter.add("amount", 111.11, "%(amount)d", "金额");
+        formatter.add("date", new Date(), "%(date)tF", "日期");
         //前端需要得到有效的格式化标签的信息
         Map<String,Map<String,Object>> labels = formatter.getLabels();
         System.out.println(labels);
@@ -193,8 +200,15 @@ public class StringFormatter
             if(fields.contains("date"))
                 formatter.set("date", new Date());
             //进行格式化
-            String s = formatter.format();
-            System.out.println(s);
+            try
+            {
+                String s = formatter.format();
+                System.out.println(s);
+            }
+            catch(Exception ex)
+            {
+                ;
+            }
         }
         else
         {
@@ -205,9 +219,16 @@ public class StringFormatter
         formatter.set("date", new Date());
         formatter.set("amount", 122.234);
         //直接格式化，不建议这样使用，应该先检测模版格式
-        String s = formatter.format("您好 {%(title)s} , {%(date)tF} 账单，金额 {%(amount).2f} 。",false);
-        System.out.println(s);
+        try
+        {
+            String s = formatter.format("您好 {%(title)s} , {%(date)tF} 账单，金额 {%(amount).2f} 。",false);
+            System.out.println(s);
+        }
+        catch(Exception ex)
+        {
+            ;
+        }
         List fields = formatter.getFields();
         System.out.println(fields);
     }
-}
+    
