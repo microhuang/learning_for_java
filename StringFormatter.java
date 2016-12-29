@@ -54,8 +54,8 @@ public class StringFormatter
                 put("index", labels.size()+1);//格式化用：%index$
                 put("label", label.trim());//前端用：%(name)$
                 put("default", value);//前端用，示例值
-                put("pattern", value);//前端用，示例值
-                put("comment", value);//前端用，示例值
+                put("pattern", pattern);//前端用，示例值
+                put("comment", comment);//前端用，示例值
             }});
         
         return true;
