@@ -153,13 +153,15 @@ public class StringFormatter
             String tmp = temp;
             temp = temp.replace("%("+entry.getKey()+")", "%"+entry.getValue().get("index")+"$");
             if(!tmp.equals(temp))
+            {
                 fields.add(entry.getKey());
-            if(test)
-                params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("default");
-            else if(entry.getValue().containsKey("value"))
-                params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("value");
-            else
-                throw new Exception("Label: "+entry.getKey()+" 没有分配值！");
+                if(test)
+                    params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("default");
+                else if(entry.getValue().containsKey("value"))
+                    params[Integer.parseInt(entry.getValue().get("index").toString())-1] = entry.getValue().get("value");
+                else
+                    throw new Exception("Label: "+entry.getKey()+" 没有分配值！");
+            }
         }
         //直接使用String格式化
 //        try
