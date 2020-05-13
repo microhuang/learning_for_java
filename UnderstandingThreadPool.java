@@ -14,7 +14,7 @@ interface ThreadPool<Job extends Runnable>
     int getJobSize();
 }
 
-public class AboutDemoThreadPool<Job extends Runnable> implements ThreadPool<Job>
+public class UnderstandingThreadPool<Job extends Runnable> implements ThreadPool<Job>
 {
     private static final int MAX_WORKER_NUMBERS = 10;
     private static final int DEFAULT_WORKER_NUMBERS = 5;
@@ -23,11 +23,11 @@ public class AboutDemoThreadPool<Job extends Runnable> implements ThreadPool<Job
     private final List<Worker> workers = java.util.Collections.synchronizedList(new ArrayList<Worker>());
     private int workerNum = DEFAULT_WORKER_NUMBERS;
     private AtomicLong threadNum = new AtomicLong();
-    public AboutDemoThreadPool()
+    public UnderstandingThreadPool()
     {
         initializeWokers(DEFAULT_WORKER_NUMBERS);
     }
-    public AboutDemoThreadPool(int num)
+    public UnderstandingThreadPool(int num)
     {
         workerNum = num > MAX_WORKER_NUMBERS ? MAX_WORKER_NUMBERS : num < MIN_WORKER_NUMBERS ? MIN_WORKER_NUMBERS : num;
         initializeWokers(workerNum);
@@ -146,5 +146,19 @@ public class AboutDemoThreadPool<Job extends Runnable> implements ThreadPool<Job
         {
             running = false;
         }
+    }
+    
+    public static void main(String[] args)
+    {
+        class Cc implements Runnable
+        {
+
+            @Override
+            public void run() {
+                System.out.println("Cc");
+            }
+            
+        }
+        new UnderstandingThreadPool<Cc>(1).execute(new Cc());
     }
 }
