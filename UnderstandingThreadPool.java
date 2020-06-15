@@ -109,12 +109,12 @@ public class UnderstandingThreadPool<Job extends Runnable> implements ThreadPool
 
         @Override
         public void run() {
-            while ( running && (!Thread.currentThread().isInterrupted()) ) //处理中断请求
+            while ( running && (!Thread.currentThread().isInterrupted()) ) //优雅退出线程
             {
                 Job job = null;
                 synchronized (jobs)
                 {
-                    while (jobs.isEmpty())
+                    while ( jobs.isEmpty() && running && (!Thread.currentThread().isInterrupted()) ) //
                     {
                         try
                         {
@@ -142,9 +142,14 @@ public class UnderstandingThreadPool<Job extends Runnable> implements ThreadPool
             }
         }
         
+        //优雅退出线程
         public void shutdown()
         {
             running = false;
+            synchronized (jobs)
+            {
+                jobs.notifyAll();
+            }
         }
     }
     
